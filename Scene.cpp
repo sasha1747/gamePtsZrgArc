@@ -1,7 +1,7 @@
 #include "neutralObjects.cpp"
 #include "Iter.cpp"
 #include <Windows.h>
-
+#include <sstream>
 using namespace std;
 
 class Scene {
@@ -79,10 +79,14 @@ public:
 	combatBase createBase() {
 		return(*new combatBase());
 	}
-	void createGameField() {
+	string createGameField() {
 		//srand(time(0));
 		std::cout << "Insert coin and specify the size of the playing field:";
 		std::cin >> fieldSize;
+		stringstream ss;
+		ss << fieldSize;
+		string sizeOfField;
+		ss >> sizeOfField;
 		for (int i = 0; i < fieldSize; i++) {
 			/*if (i == 0 or i == fieldSize - 1) {
 				for (int j = 0; j < fieldSize; j++) {
@@ -105,6 +109,7 @@ public:
 				//	}
 			}
 		}
+		return sizeOfField;
 	}
 
 	void printGameField() {
@@ -374,11 +379,11 @@ public:
 		unitsOnScene.erase(tuple<int, int>(i, j));
 	}
 
-	void fight(Warrior* unitA, Warrior* unitB) {
+	string fight(Warrior* unitA, Warrior* unitB) {
 		Warrior* winner = *unitA % unitB;
 		if (winner == nullptr) {
 			cout << "draw\n";
-			return;
+			return "draw";
 		}
 		cout << winner->info() << ' ' << "has win\n";
 		if (winner != unitA) {
@@ -389,6 +394,8 @@ public:
 			//unitA->addHealth(unitB->getHealth());
 			removeUnit(unitB);
 		}
+		return winner->info() + ' ' + "has win";
+
 	}
 	void getTherapy(Warrior* unit, Hospital* hospital) {
 		hospital->therapy(unit);

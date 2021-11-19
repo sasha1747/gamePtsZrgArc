@@ -1,10 +1,14 @@
 #include "Scene.cpp"
 #include "windows.h"
+#include "logs.cpp"
+using namespace std;
 class Game {
 private:
 	Scene scene;
 public:
+	MyLog* log;
 	Game() {
+		log = new MyLog;
 		//scene = *new Scene;
 		startMenu();
 	}
@@ -13,14 +17,17 @@ public:
 		int com;
 		cin >> com;
 		if (com == 2) {
+			log->makeNewLog("user: start new game");
 			game();
 		}
 		else {
+			log->makeNewLog("user: Exit");
 			return;
 		}
 	}
 	void game() {
-		scene.createGameField();
+		string sizeOfField = scene.createGameField();
+		log->makeNewLog("the user created a field with the size: " + sizeOfField + " X " + sizeOfField);
 		while (true) {
 			Sleep(1000);////
 			scene.printGameField();
@@ -28,26 +35,49 @@ public:
 			int com;
 			cin >> com;
 			if (com == 1) {
+				log->makeNewLog("user: info");
 				scene.printGameField();
 				infoMenu();
 			}
 			if (com == 2) {
+				log->makeNewLog("user: combat base management");
 				scene.printGameField();
 				basesMenu();
 			}
 			if (com == 3) {
+				log->makeNewLog("user: unit management");
 				scene.printGameField();
 				unitsMenu();
 			}
 			if (com == 4) {
+				log->makeNewLog("user: hospital management");
 				scene.printGameField();
 				hospitalsMenu();
 			}
-			if (com == 5)
+			if (com == 5) {
+				log->makeNewLog("user: exit");
 				break;
+			}
 		}
 		//system("cls");
 		cout << "\n----------------END---------------- \n";
+		//log->outputLogs();
+		Log* adaptLog = new Adapter(log);
+		cout << "\nwhere to output logs\nConsole = 1\nlog.txt = 2\n";
+		int comm;
+		cin >> comm;
+		ofstream fout;
+		if (comm == 1) {
+			fout.open("CON");
+		}
+		if (comm == 2) {
+			fout.open("log.txt");
+		}
+		string res = adaptLog->LogToConsole();
+		fout << res;
+		/*if (comm == 1) {
+			system("pause");
+		}*/
 		//Sleep(5000);
 		return;
 	}
@@ -56,12 +86,15 @@ public:
 		int com;
 		cin >> com;
 		if (com == 1) {
+			log->makeNewLog("user: Total units on map");
 			scene.totalUnitsOnMap();
 		}
 		if (com == 2) {
+			log->makeNewLog("user: Total bases on map");
 			scene.totalBasesOnMap();
 		}
 		if (com == 3) {
+			log->makeNewLog("user: Total hospitals on map");
 			scene.totalHospitalsOnMap();
 		}
 	}
@@ -72,12 +105,15 @@ public:
 		cin >> com;
 		scene.printGameField();
 		if (com == 1) {
+			log->makeNewLog("user: make new unit");
 			cout << "\n enter the coordinates of the base on which you are going to create a unit\n";
+			log->makeNewLog("user: enter the coordinates of the new base");
 			int x, y;
 			cin >> x >> y;
 			combatBase* base = scene.getBaseFromCoord(x, y);
 			Warrior* unit = nullptr;
 			if (base == nullptr) {
+				log->makeNewLog("user: entered incorrect coordinates");
 				cout << "\n incorrect input\n";
 			}
 			else {
@@ -91,9 +127,12 @@ public:
 					cin >> type;
 					if (type == 1) {
 						unit = base->createUnit(ProtossSquad, Archon_PTS);
+						log->makeNewLog("user: entered Archon_PTS");
 					}
 					if (type == 2) {
 						unit = base->createUnit(ProtossSquad, Dragoon_PTS);
+						log->makeNewLog("user: entered Dragoon_PTS");
+
 					}
 				}
 
@@ -103,9 +142,11 @@ public:
 					cin >> type;
 					if (type == 1) {
 						unit = base->createUnit(ZergSquad, Zealot_ZRG);
+						log->makeNewLog("user: entered Zealot_ZRG");
 					}
 					if (type == 2) {
 						unit = base->createUnit(ZergSquad, InfestedTerran_ZRG);
+						log->makeNewLog("user: entered InfestedTerran_ZRG");
 					}
 				}
 
@@ -115,21 +156,28 @@ public:
 					cin >> type;
 					if (type == 1) {
 						unit = base->createUnit(TerranSquad, Battlecruiser_TRN);
+						log->makeNewLog("user: entered Battlecruiser_TRN");
 					}
 					if (type == 2) {
 						unit = base->createUnit(TerranSquad, Goliath_TRN);
+						log->makeNewLog("user: entered Goliath_TRN");
 					}
 				}
 			}
 			if (unit == nullptr) {
 				cout << "\n Incorrect input\n";
+				log->makeNewLog("user: entered incorrect input");
 			}
 			else {
 				scene.printGameField();
 				cout << "\n choose the location of the loyal unit placement\n";
 				int x, y;
 				cin >> x >> y;
-				scene.addUnit(unit, x, y);
+				log->makeNewLog("user: entered coordinates of unit");
+				if (scene.addUnit(unit, x, y) != -1)
+					log->makeNewLog(unit->info() + ": located at the coordinates entered by the user");
+				else
+					log->makeNewLog("user: entered incorrect input");
 			}
 		}
 		else {
@@ -140,43 +188,52 @@ public:
 			cout << "\n Insert coord of unit\n";
 			int x, y;
 			cin >> x >> y;
+			log->makeNewLog("user: entered the coordinates of the unit he wants to interact with");
 			Warrior* unit = scene.getUnitFromCoord(x, y);
 			scene.printGameField();
 			if (unit != nullptr) {
 				if (com == 1) {
+					log->makeNewLog("user: entered the coordinates of the unit he wants to interact with");
 					cout << "\n Insert w,a,s, or d to move\n";
 					char myStep;
 					cin >> myStep;
 					scene.step(unit, myStep);
 				}
 				if (com == 2) {
+					log->makeNewLog("user: to be treated the unit");
 					cout << "\n Insert coord of hospital\n";
 					int hx, hy;
 					cin >> hx >> hy;
 					Hospital* hospital = scene.getHospitalFromCoord(x, y);
 					if (hospital != nullptr) {
 						hospital->therapy(unit);
+						log->makeNewLog(unit->info() + " : to be treated on hospital " + hospital->info());
 					}
 				}
 				if (com == 3) {
+					log->makeNewLog("user: to be attack the unit");
 					cout << "\n enter the coordinates of the unit to attack\n";
 					int ax, ay;
 					cin >> ax >> ay;
 					Warrior* enemyUnit = scene.getUnitFromCoord(x, y);
 					if (enemyUnit != nullptr) {
-						scene.fight(unit, enemyUnit);
+						log->makeNewLog(scene.fight(unit, enemyUnit));
 					}
 				}
 				if (com == 4) {
+					log->makeNewLog("user: get unit health");
 					cout << scene.getUnitHealth(unit) << endl;
 				}
 				if (com == 5) {
+					log->makeNewLog("user: get unit Armour");
 					cout << scene.getUnitArmour(unit) << endl;
 				}
 				if (com == 6) {
+					log->makeNewLog("user: get unit Attack");
 					cout << scene.getUnitAttack(unit) << endl;
 				}
 				if (com == 7) {
+					log->makeNewLog("user: get unit Info");
 					cout << scene.getUnitInfo(unit) << endl;
 				}
 			}
@@ -188,14 +245,18 @@ public:
 		cin >> com;
 		scene.printGameField();
 		if (com == 1) {
+			log->makeNewLog("user: create new base");
 			cout << "\n enter the coordinates for the base\n";
 			int x, y;
 			cin >> x >> y;
+			log->makeNewLog("user: enter the coordinates for the new base");
 			//combatBase base = scene.createBase();
 			scene.addBase(new combatBase, x, y);
 		}
 		if (com == 2) {
+			log->makeNewLog("user: information for an existing base");
 			cout << "\n enter the coordinates of the base\n";
+			log->makeNewLog("user: enter the coordinates for the existing base");
 			int x, y;
 			cin >> x >> y;
 			combatBase* base = nullptr;
@@ -205,9 +266,11 @@ public:
 				int func;
 				cin >> func;
 				if (func == 1) {
+					log->makeNewLog("user: how many have already been created");
 					cout << scene.countOfUnitsOnBase(base) << endl;
 				}
 				if (func == 2) {
+					log->makeNewLog("user: how many can be created in total");
 					cout << scene.maximumCountOfUnitsOnBase(base) << endl;
 				}
 			}
@@ -219,6 +282,7 @@ public:
 		cin >> com;
 		scene.printGameField();
 		if (com == 1) {
+			log->makeNewLog("user: create hospital ");
 			cout << "\n insert the coord to add hospital\n";
 			int x, y;
 			cin >> x >> y;
@@ -242,6 +306,7 @@ public:
 			cin >> x >> y;
 			Hospital* hospital = scene.getHospitalFromCoord(x, y);
 			if (hospital != nullptr) {
+				log->makeNewLog("user: get hospital info");
 				scene.getHospitalInfo(hospital);
 			}
 		}

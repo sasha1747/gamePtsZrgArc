@@ -66,15 +66,10 @@ public:
 		cout << "\nwhere to output logs\nConsole = 1\nlog.txt = 2\n";
 		int comm;
 		cin >> comm;
+		pair<string, string>  res = adaptLog->printLog(comm);
 		ofstream fout;
-		if (comm == 1) {
-			fout.open("CON");
-		}
-		if (comm == 2) {
-			fout.open("log.txt");
-		}
-		string res = adaptLog->LogToConsole();
-		fout << res;
+		fout.open(res.second);
+		fout << res.first;
 		/*if (comm == 1) {
 			system("pause");
 		}*/

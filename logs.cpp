@@ -25,19 +25,26 @@ public:
 class Log {
 public:
 	virtual ~Log() {}
-	virtual string LogToFile() = 0;
-	virtual string LogToConsole() = 0;
+	virtual pair<string, string> printLog(int com) = 0;
+	virtual pair<string, string> LogToFile() = 0;
+	virtual pair<string, string> LogToConsole() = 0;
 };
 
-class Adapter : public Log
-{
+class Adapter : public Log {
 public:
-	Adapter(MyLog* p) : p_myLog(p) {
-	}
+	Adapter(MyLog* p) : p_myLog(p) {}
 	~Adapter() {
 		delete p_myLog;
 	}
-	string LogToFile()override {
+	pair<string, string> printLog(int com) {
+		if (com == 1) {
+			return(pair<string, string>(LogToConsole()));
+		}
+		if (com == 2) {
+			return (pair<string, string>(LogToFile()));
+		}
+	}
+	pair<string, string> LogToFile()override {
 		stringstream ss;
 		vector<string>logs = p_myLog->outputLogsToFile();
 		for (auto x : logs) {
@@ -51,9 +58,9 @@ public:
 			res += str;
 			res += "\n";
 		}
-		return res;
+		return pair<string, string>(res, "log.txt");
 	}
-	string LogToConsole()override {
+	pair<string, string> LogToConsole()override {
 		stringstream ss;
 		vector<string>logs = p_myLog->outputLogsToConsole();
 		for (auto x : logs) {
@@ -67,7 +74,7 @@ public:
 			res += str;
 			res += "\n";
 		}
-		return res;
+		return pair<string, string>(res, "CON");
 	}
 private:
 	MyLog* p_myLog;

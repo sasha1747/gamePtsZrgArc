@@ -5,11 +5,13 @@ using namespace std;
 class Game {
 private:
 	Scene scene;
+	Caretaker* caretaker;
 public:
 	MyLog* log;
 	Game() {
 		log = new MyLog;
-		//scene = *new Scene;
+		scene = *new Scene;
+		caretaker = new Caretaker(&scene);
 		startMenu();
 	}
 	void startMenu() {
@@ -31,7 +33,7 @@ public:
 		while (true) {
 			Sleep(1000);////
 			scene.printGameField();
-			cout << "\n info = 1\n combat base management = 2\n unit management = 3\n hospital management = 4\n exit = 5 \n ";
+			cout << "\n info = 1\n combat base management = 2\n unit management = 3\n hospital management = 4\n exit = 5 \n save = 6\n take last save = 7\n ";
 			int com;
 			cin >> com;
 			if (com == 1) {
@@ -57,6 +59,15 @@ public:
 			if (com == 5) {
 				log->makeNewLog("user: exit");
 				break;
+			}
+			if (com == 6) {
+				log->makeNewLog("user: save");
+				caretaker->backup();
+				//cout<<"\n DONE \n;"
+			}
+			if (com == 7) {
+				log->makeNewLog("user: take last save");
+				caretaker->lastFromHistory();
 			}
 		}
 		//system("cls");

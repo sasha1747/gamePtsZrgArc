@@ -2,7 +2,59 @@
 #include "Iter.cpp"
 #include <Windows.h>
 #include <sstream>
+#include <stack>
+#include <fstream>
 using namespace std;
+
+class Snapshot {
+public:
+	/*virtual void saveUnitsOnScene() const = 0;
+	virtual void savebasesOnScene() const = 0;
+	virtual void saveLandscapesOnScene() const = 0;
+	virtual void savehospitalsOnScene() const = 0;*/
+	//virtual void saveAllToFile() const = 0;
+
+	virtual map<tuple<int, int>, Warrior*> stateUnitsOnScene() const = 0;
+	virtual map<tuple<int, int>, combatBase*> stateBasesOnScene() const = 0;
+	virtual map<tuple<int, int>, LandScape*> stateLandscapesOnScene()const = 0;
+	virtual map<tuple<int, int>, Hospital*> stateHospitalsOnScene() const = 0;
+	virtual int stateFildSize() const = 0;
+
+};
+
+class ConcreteSnapshot : public Snapshot {
+private:
+	map<tuple<int, int>, Warrior*> _unitsOnScene;
+	map<tuple<int, int>, combatBase*> _basesOnScene;
+	map<tuple<int, int>, LandScape*> _LandscapesOnScene;
+	map<tuple<int, int>, Hospital*> _hospitalsOnScene;
+	int _fildSize;
+
+public:
+	ConcreteSnapshot(map<tuple<int, int>, Warrior*> stateUnits, map<tuple<int, int>, combatBase*> stateBases,
+		map<tuple<int, int>, LandScape*> stateLandscapes, map<tuple<int, int>, Hospital*> stateHospitals, int fildSize) : _unitsOnScene(stateUnits), _basesOnScene(stateBases),
+		_LandscapesOnScene(stateLandscapes), _hospitalsOnScene(stateHospitals), _fildSize(fildSize) {}
+
+	map<tuple<int, int>, Warrior*> stateUnitsOnScene() const override {
+		return this->_unitsOnScene;
+	}
+	map<tuple<int, int>, combatBase*> stateBasesOnScene() const override {
+		return this->_basesOnScene;
+	}
+	map<tuple<int, int>, LandScape*> stateLandscapesOnScene() const override {
+		return this->_LandscapesOnScene;
+	}
+	map<tuple<int, int>, Hospital*> stateHospitalsOnScene() const override {
+		return this->_hospitalsOnScene;
+	}
+	int stateFildSize() const override {
+		return this->_fildSize;
+	}
+};
+
+
+
+
 
 class Scene {
 
@@ -11,6 +63,7 @@ private:
 	map<tuple<int, int>, combatBase*> basesOnScene;
 	map<tuple<int, int>, LandScape*> LandscapesOnScene;
 	map<tuple<int, int>, Hospital*> hospitalsOnScene;
+
 	bool check(int i, int j) {
 		return(i < fieldSize&& j < fieldSize&& i> 0 && j>0);
 	}
@@ -74,6 +127,17 @@ public:
 		srand(time(NULL));
 	}
 	int fieldSize;
+
+	Snapshot* save() {
+		return (new ConcreteSnapshot(this->unitsOnScene, this->basesOnScene, this->LandscapesOnScene, this->hospitalsOnScene, this->fieldSize));
+	}
+	void restore(Snapshot* snapshot) {
+		this->unitsOnScene = snapshot->stateUnitsOnScene();
+		this->basesOnScene = snapshot->stateBasesOnScene();
+		this->LandscapesOnScene = snapshot->stateLandscapesOnScene();
+		this->hospitalsOnScene = snapshot->stateHospitalsOnScene();
+		this->fieldSize = snapshot->stateFildSize();
+	}
 	//int si, sj;
 	friend class Iter;
 	combatBase createBase() {
@@ -480,4 +544,31 @@ public:
 		//	remove(get<0>(coord), get<1>(coord));
 		//}
 	//}
+};
+
+
+
+class Caretaker {
+private:
+	stack<Snapshot*> snapshots;
+	Scene* scene;
+public:
+	Caretaker(Scene* scene_) : scene(scene_) {}
+
+	void backup() {
+		this->snapshots.push(this->scene->save());
+	}
+	void lastFromHistory() {
+		if (this->snapshots.size() == 0) {
+			return;
+		}
+		Snapshot* snapshot = this->snapshots.top();
+		this->snapshots.pop();
+		this->scene->restore(snapshot);
+	}
+	/*void ShowHistory() const {
+		for (Memento* memento : this->mementos_) {
+			std::cout << memento->GetName() << "\n";
+		}
+	}*/
 };

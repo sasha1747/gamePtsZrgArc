@@ -14,6 +14,19 @@ public:
 		caretaker = new Caretaker(&scene);
 		startMenu();
 	}
+	/*void startMenu() {
+		cout << "Exit = 1\nstart new game = 2\n";
+		int com;
+		cin >> com;
+		if (com == 2) {
+			log->makeNewLog("user: start new game");
+			game();
+		}
+		else {
+			log->makeNewLog("user: Exit");
+			return;
+		}
+	}*/
 	void startMenu() {
 		cout << "Exit = 1\nstart new game = 2\n";
 		int com;
